@@ -3,11 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PInteractionComponent.h"
 #include "GameFramework/Character.h"
 #include "PHeroCharacter.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
+class UPInteractionComponent;
+class UAnimMontage;
 
 UCLASS()
 class ACTIONROUGUE_API APHeroCharacter : public ACharacter
@@ -20,6 +23,18 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
+
+	FTimerHandle TimerHandle_PrimaryAttack;
+
+	UPROPERTY(EditDefaultsOnly,Category="Attack");
+	UAnimMontage* AttackAnim;
+
+	UPROPERTY(EditDefaultsOnly,Category="Attack")
+	float AnimDelay;
+
+	UPROPERTY(EditDefaultsOnly, Category="Attack");
+	TSubclassOf<AActor> ProjectileClass;
+	
 	virtual void BeginPlay() override;
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComp;
@@ -27,8 +42,18 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComp;
 
+	UPROPERTY(VisibleAnywhere)
+	UPInteractionComponent* InteractionComp;
+
 	void MoveForward(float Value);
+	
 	void MoveRight(float Value);
+
+	void PrimaryAttack();
+
+	void PrimaryAttack_TimeElapsed();
+
+	void PrimaryInteract();
 
 public:	
 	// Called every frame
