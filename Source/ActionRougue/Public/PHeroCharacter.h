@@ -11,6 +11,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class UPInteractionComponent;
 class UAnimMontage;
+class UPAttributeComponent;
 
 UCLASS()
 class ACTIONROUGUE_API APHeroCharacter : public ACharacter
@@ -22,20 +23,40 @@ public:
 	APHeroCharacter();
 
 protected:
+	FTimerHandle TimerHandle_PrimaryAttack;
+	FTimerHandle TimerHandle_DashAttack;
+	FTimerHandle TimerHandle_BlackHoleAttack;
+	
+
+	UPROPERTY(EditAnywhere, Category="Attack")
+	TSubclassOf<AActor> ProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category="Attack")
+	TSubclassOf<AActor> BlackHoleProjectileClass;
+
+	UPROPERTY(EditAnywhere,Category="Attack")
+	TSubclassOf<AActor> DashProjectileClass;
+
+protected:
 	// Called when the game starts or when spawned
 
-	FTimerHandle TimerHandle_PrimaryAttack;
+	UPROPERTY(VisibleAnywhere , Category="Effects")
+	FName HandSocketName;
+
+	UPROPERTY(VisibleAnywhere , Category="Effects")
+	FName TimeToHitParamName;
 
 	UPROPERTY(EditDefaultsOnly,Category="Attack");
 	UAnimMontage* AttackAnim;
 
 	UPROPERTY(EditDefaultsOnly,Category="Attack")
-	float AnimDelay;
+	UParticleSystem* CastingEffect;
 
-	UPROPERTY(EditDefaultsOnly, Category="Attack");
-	TSubclassOf<AActor> ProjectileClass;
+	UPROPERTY(EditDefaultsOnly,Category="Attack")
+	float AnimDelay;
 	
 	virtual void BeginPlay() override;
+	
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComp;
 
@@ -45,15 +66,35 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UPInteractionComponent* InteractionComp;
 
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
+	UPAttributeComponent* AttributeComp;
+
 	void MoveForward(float Value);
 	
 	void MoveRight(float Value);
+
+	void StartAttackEffects();
 
 	void PrimaryAttack();
 
 	void PrimaryAttack_TimeElapsed();
 
+	void DashAttack();
+
+	void DashAttack_TimeElapsed();
+
+	void BlackHoleAttack();
+
+	void BlackHoleAttack_TimeElapsed();
+
 	void PrimaryInteract();
+
+	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
+
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, UPAttributeComponent* OwningComp, float NewHealth, float Delta);
+	
+	void PostInitializeComponents() override;
 
 public:	
 	// Called every frame

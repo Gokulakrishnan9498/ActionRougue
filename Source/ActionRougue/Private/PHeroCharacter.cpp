@@ -3,9 +3,11 @@
 
 #include "PHeroCharacter.h"
 
+#include "PAttributeComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 APHeroCharacter::APHeroCharacter()
@@ -22,13 +24,25 @@ APHeroCharacter::APHeroCharacter()
 
 	InteractionComp = CreateDefaultSubobject<UPInteractionComponent>(TEXT("InteractionComp"));
 
+	AttributeComp = CreateDefaultSubobject<UPAttributeComponent>(TEXT("AttributeComp"));
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
 	bUseControllerRotationYaw = false;
 
 	AnimDelay = 0.2f;
-	
 
+	HandSocketName = "Muzzle_01";
+
+	TimeToHitParamName = "TimeToHit";
+	
+}
+
+void APHeroCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	AttributeComp->OnHealthChanged.AddDynamic(this,&APHeroCharacter::OnHealthChanged);
 }
 
 // Called when the game starts or when spawned
@@ -59,28 +73,97 @@ void APHeroCharacter::MoveRight(float Value)
 	AddMovementInput(RightVector , Value);
 }
 
-void APHeroCharacter::PrimaryAttack()
+void APHeroCharacter::StartAttackEffects()
 {
 	PlayAnimMontage(AttackAnim);
+	UGameplayStatics::SpawnEmitterAttached(CastingEffect,GetMesh(),HandSocketName,FVector::ZeroVector,FRotator::ZeroRotator,EAttachLocation::SnapToTarget);
+}
 
+void APHeroCharacter::PrimaryAttack()
+{
+	StartAttackEffects();
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack,this,&APHeroCharacter::PrimaryAttack_TimeElapsed,AnimDelay);
 }
 
 void APHeroCharacter::PrimaryAttack_TimeElapsed()
 {
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
-	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation );
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
+	SpawnProjectile(ProjectileClass);
+}
 
-	GetWorld()->SpawnActor<AActor>(ProjectileClass ,SpawnTM, SpawnParams);
+void APHeroCharacter::DashAttack()
+{
+	StartAttackEffects();
+	GetWorldTimerManager().SetTimer(TimerHandle_DashAttack,this,&APHeroCharacter::DashAttack_TimeElapsed,AnimDelay);
+}
+
+void APHeroCharacter::DashAttack_TimeElapsed()
+{
+	SpawnProjectile(DashProjectileClass);
+}
+
+void APHeroCharacter::BlackHoleAttack()
+{
+	StartAttackEffects();
+	GetWorldTimerManager().SetTimer(TimerHandle_BlackHoleAttack,this,&APHeroCharacter::BlackHoleAttack_TimeElapsed,AnimDelay);
+}
+
+void APHeroCharacter::BlackHoleAttack_TimeElapsed()
+{
+	SpawnProjectile(BlackHoleProjectileClass);
 }
 
 void APHeroCharacter::PrimaryInteract()
 {
-	InteractionComp->PrimaryInteract();
+	if (InteractionComp)
+	{
+		InteractionComp->PrimaryInteract();
+	}
 }
+
+void APHeroCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
+{
+	if (ensureAlways(ClassToSpawn))
+	{
+		FVector HandLocation = GetMesh()->GetSocketLocation(HandSocketName);
+
+		FCollisionObjectQueryParams ObjectQueryParams;
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody);
+		ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		FCollisionShape Shape;
+		Shape.SetSphere(20.0f);
+
+		//Ignore Player
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		FVector TraceStart = CameraComp->GetComponentLocation();
+		//EndPoint far into the look-at distance(not too far,still adjust somewhat towards crosshair on a miss)
+		FVector TraceEnd = TraceStart + (GetControlRotation().Vector() * 5000.0f);
+
+		FHitResult Hit;
+
+		//returns if we get a blocking hit
+		if (GetWorld()->SweepSingleByObjectType(Hit,TraceStart,TraceEnd,FQuat::Identity,ObjectQueryParams,Shape,Params))
+		{
+			TraceEnd = Hit.ImpactPoint;
+		}
+		//find new direction/rotation from hand pointing to impact point in world
+		FRotator ProjectileRotation = FRotationMatrix::MakeFromX(TraceEnd - HandLocation).Rotator();
+		FTransform SpawnTM = FTransform(ProjectileRotation,HandLocation);
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride=ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Instigator = this;
+	
+		GetWorld()->SpawnActor<AActor>(ClassToSpawn,SpawnTM,SpawnParams);
+
+		DrawDebugLine(GetWorld(),HandLocation,TraceEnd,FColor::Green,false,2.0f,0,2.0f);
+	}
+}
+
 
 // Called every frame
 void APHeroCharacter::Tick(float DeltaTime)
@@ -101,6 +184,20 @@ void APHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction("Jump" , IE_Pressed,this,&ACharacter::Jump);
 	PlayerInputComponent->BindAction("PrimaryAttack",IE_Pressed,this,&APHeroCharacter::PrimaryAttack);
 	PlayerInputComponent->BindAction("PrimaryInteract",IE_Pressed,this,&APHeroCharacter::PrimaryInteract);
+	PlayerInputComponent->BindAction("DashAttack",IE_Pressed,this,&APHeroCharacter::DashAttack);
+	PlayerInputComponent->BindAction("BlackHoleAttack",IE_Pressed,this,&APHeroCharacter::BlackHoleAttack);
 
 }
 
+void APHeroCharacter::OnHealthChanged(AActor* InstigatorActor, UPAttributeComponent* OwningComp, float NewHealth,float Delta)
+{
+	if (Delta < 0.0f)
+	{
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName,GetWorld()->TimeSeconds);
+	}
+	if (NewHealth <= 0.0f && Delta < 0.0f)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		DisableInput(PC);
+	}
+}

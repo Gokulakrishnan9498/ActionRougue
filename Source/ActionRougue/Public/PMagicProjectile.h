@@ -9,13 +9,17 @@
 class USphereComponent;
 class UParticleSystemComponent;
 class UProjectileMovementComponent;
+class UAudioComponent;
+class UParticleSystem;
+class USoundCue;
 
 UCLASS()
 class ACTIONROUGUE_API APMagicProjectile : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
+public:
+	
 	// Sets default values for this actor's properties
 	APMagicProjectile();
 
@@ -33,6 +37,33 @@ protected:
 
 	UPROPERTY(VisibleAnywhere , BlueprintReadOnly)
 	UProjectileMovementComponent* MovementComp;
+
+	UPROPERTY(VisibleAnywhere , BlueprintReadOnly)
+	UAudioComponent* AudioComp;
+
+	UPROPERTY(EditAnywhere , Category="Damage")
+	float DamageAmount;
+
+	UPROPERTY(EditAnywhere , Category="Damage")
+	float ImpactShakeInnerRadius;
+
+	UPROPERTY(EditAnywhere , Category="Damage")
+	float ImpactShakeOuterRadius;
+
+	UPROPERTY(EditDefaultsOnly , Category="Damage")
+	TSubclassOf<UCameraShakeBase> ImpactShake;
+
+	UPROPERTY(EditDefaultsOnly , Category="Damage")
+	UParticleSystem* ImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly , Category="Damage")
+	USoundCue* ImpactSound;
+
+	UFUNCTION()
+	void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:	
 	// Called every frame

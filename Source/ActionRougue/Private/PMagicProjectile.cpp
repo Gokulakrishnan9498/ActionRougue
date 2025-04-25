@@ -3,9 +3,13 @@
 
 #include "PMagicProjectile.h"
 
+#include "PAttributeComponent.h"
+#include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 APMagicProjectile::APMagicProjectile()
@@ -16,16 +20,25 @@ APMagicProjectile::APMagicProjectile()
 	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	SetRootComponent(SphereComp);
 	SphereComp->SetCollisionProfileName(TEXT("Projectile"));
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this,&APMagicProjectile::OnActorOverlap);
+	SphereComp->OnComponentHit.AddDynamic(this,&APMagicProjectile::OnActorHit);
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("EffectComp"));
 	EffectComp->SetupAttachment(SphereComp);
 
 	MovementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComp"));
 
+	AudioComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComp"));
+	AudioComp->SetupAttachment(SphereComp);
+
 	MovementComp->InitialSpeed = 3000.0f;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bInitialVelocityInLocalSpace = true;
-	
+
+	DamageAmount = 20.0f;
+
+	ImpactShakeInnerRadius = 250.0f;
+	ImpactShakeOuterRadius = 2500.0f;
 
 }
 
@@ -33,6 +46,41 @@ APMagicProjectile::APMagicProjectile()
 void APMagicProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+	AActor* InstigatorActor = GetInstigator();
+	if (InstigatorActor)
+	{
+		SphereComp->IgnoreActorWhenMoving(InstigatorActor,true);	
+	}
+}
+
+void APMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && OtherActor != GetInstigator())
+	{
+		UPAttributeComponent* AttributeComp = Cast<UPAttributeComponent>(OtherActor->GetComponentByClass(UPAttributeComponent::StaticClass()));
+		if (AttributeComp)
+		{
+			AttributeComp->ApplyHealthChange(-DamageAmount);
+
+			Destroy();
+		}
+	}
+	
+}
+
+void APMagicProjectile::OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor && OtherActor != GetInstigator())
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this,ImpactVFX,GetActorLocation(),GetActorRotation());
+		UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),GetActorRotation());
+		UGameplayStatics::PlayWorldCameraShake(this,ImpactShake,GetActorLocation(),ImpactShakeInnerRadius,ImpactShakeOuterRadius);
+
+		EffectComp->DeactivateSystem();
+		MovementComp->StopMovementImmediately();
+		SetActorEnableCollision(false);
+		Destroy();
+	}
 	
 }
 

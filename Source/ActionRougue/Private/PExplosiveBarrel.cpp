@@ -3,6 +3,8 @@
 
 #include "PExplosiveBarrel.h"
 
+#include "PAttributeComponent.h"
+
 // Sets default values
 APExplosiveBarrel::APExplosiveBarrel()
 {
@@ -24,19 +26,43 @@ APExplosiveBarrel::APExplosiveBarrel()
 	RadialForce->bImpulseVelChange = true;
 	RadialForce->SetAutoActivate(false);
 	RadialForce->AddCollisionChannelToAffect(ECC_WorldDynamic);
+	
 }
+
 
 void APExplosiveBarrel::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	BarrelMesh->OnComponentHit.AddDynamic(this,&APExplosiveBarrel::OnBarrelHit);
+	if (BarrelMesh)
+	{
+		BarrelMesh->OnComponentHit.AddDynamic(this,&APExplosiveBarrel::OnBarrelHit);
+	}
 }
 
 void APExplosiveBarrel::OnBarrelHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor && OtherActor != this)
+	if (OtherActor && OtherActor != this && DamagedActor == nullptr)
 	{
 		RadialForce->FireImpulse();
+		
+
+		if (DamagedActor == OtherActor)
+		{
+			// Already damaged this actor
+			return;
+		}
+		
+		DamagedActor = OtherActor;
+
+		//DamagedActor.Add(OtherActor);tried using TSet<AActor*>
+
+		UPAttributeComponent* AttributeComp = Cast<UPAttributeComponent>(DamagedActor->GetComponentByClass(UPAttributeComponent::StaticClass()));
+		if (AttributeComp)
+		{
+			AttributeComp->ApplyHealthChange(-50.0f);
+		}
+
+		SetLifeSpan(7.0f);
 		
 		UE_LOG(LogTemp,Log,TEXT("OnActorHit in Explosive Barrel"));
 		UE_LOG(LogTemp,Warning,TEXT("Other actor : %s at Game time : %f"), *GetNameSafe(OtherActor), GetWorld()->GetTimeSeconds());

@@ -21,8 +21,11 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* BarrelMesh;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	URadialForceComponent* RadialForce;
+
+	UPROPERTY()
+	AActor* DamagedActor;
 
 	virtual void PostInitializeComponents() override;
 
