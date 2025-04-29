@@ -6,6 +6,9 @@
 #include "GameFramework/Character.h"
 #include "PAICharacter.generated.h"
 
+class UPawnSensingComponent;
+class UPAttributeComponent;
+
 UCLASS()
 class ACTIONROUGUE_API APAICharacter : public ACharacter
 {
@@ -16,12 +19,17 @@ public:
 	APAICharacter();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	UPROPERTY(VisibleAnywhere,Category="Components")
+	UPawnSensingComponent* PawnSensingComp;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	
+	UPROPERTY(VisibleAnywhere,Category="Components")
+	UPAttributeComponent* AttributeComp;
+
+	void PostInitializeComponents() override;
+
+	UFUNCTION()
+	void OnPawnSeen (APawn* Pawn);
+
+
 
 };
