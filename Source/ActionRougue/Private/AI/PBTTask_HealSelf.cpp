@@ -13,10 +13,10 @@ EBTNodeResult::Type UPBTTask_HealSelf::ExecuteTask(UBehaviorTreeComponent& Owner
 	{
 		return EBTNodeResult::Failed;
 	}
-	UPAttributeComponent* AttributeComp = Cast<UPAttributeComponent>(AIPawn->GetComponentByClass(UPAttributeComponent::StaticClass()));
+	UPAttributeComponent* AttributeComp = UPAttributeComponent::GetAttributes(AIPawn);
 	if (ensure(AttributeComp))
 	{
-		AttributeComp->ApplyHealthChange(AttributeComp->GetMaxHealth());
+		AttributeComp->ApplyHealthChange(AIPawn,AttributeComp->GetMaxHealth());
 	}
 
 	return EBTNodeResult::Succeeded;

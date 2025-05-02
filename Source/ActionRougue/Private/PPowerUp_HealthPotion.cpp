@@ -20,10 +20,10 @@ void APPowerUp_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 	{
 		return;
 	}
-	UPAttributeComponent* AttributeComp = Cast<UPAttributeComponent>(InstigatorPawn->GetComponentByClass(UPAttributeComponent::StaticClass()));
+	UPAttributeComponent* AttributeComp =UPAttributeComponent::GetAttributes(InstigatorPawn);
 	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())
 	{
-		if (AttributeComp->ApplyHealthChange(AttributeComp->GetMaxHealth()))
+		if (AttributeComp->ApplyHealthChange(this,AttributeComp->GetMaxHealth()))
 		{
 			HideAndFreezePowerUp();
 		}

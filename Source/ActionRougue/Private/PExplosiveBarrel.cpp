@@ -33,10 +33,10 @@ APExplosiveBarrel::APExplosiveBarrel()
 void APExplosiveBarrel::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	if (BarrelMesh)
-	{
+	//if (BarrelMesh)
+	//{
 		BarrelMesh->OnComponentHit.AddDynamic(this,&APExplosiveBarrel::OnBarrelHit);
-	}
+	//}
 }
 
 void APExplosiveBarrel::OnBarrelHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -56,10 +56,10 @@ void APExplosiveBarrel::OnBarrelHit(UPrimitiveComponent* HitComponent, AActor* O
 
 		//DamagedActor.Add(OtherActor);tried using TSet<AActor*>
 
-		UPAttributeComponent* AttributeComp = Cast<UPAttributeComponent>(DamagedActor->GetComponentByClass(UPAttributeComponent::StaticClass()));
+		UPAttributeComponent* AttributeComp = UPAttributeComponent::GetAttributes(DamagedActor);
 		if (AttributeComp)
 		{
-			AttributeComp->ApplyHealthChange(-50.0f);
+			AttributeComp->ApplyHealthChange(GetInstigator(),-50.0f);
 		}
 
 		SetLifeSpan(7.0f);

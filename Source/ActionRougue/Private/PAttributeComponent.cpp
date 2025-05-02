@@ -30,14 +30,31 @@ bool UPAttributeComponent::IsFullHealth() const
 	return Health == HealthMax;
 }
 
-bool UPAttributeComponent::ApplyHealthChange(float Delta)
+bool UPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor , float Delta)
 {
 	float OldHealth = Health;
 	Health = FMath::Clamp(Health + Delta,0.0f,HealthMax);
-	float ActualDelta = OldHealth - Health;
-	OnHealthChanged.Broadcast(nullptr,this,Health,ActualDelta);
+	float ActualDelta = Health - OldHealth;
+	OnHealthChanged.Broadcast(InstigatorActor,this,Health,ActualDelta);
 	
 	return ActualDelta != 0.0f;
 }
 
+UPAttributeComponent* UPAttributeComponent::GetAttributes(AActor* FromActor)
+{
+	if (FromActor)
+	{
+		return  Cast<UPAttributeComponent>(FromActor->GetComponentByClass(UPAttributeComponent::StaticClass()));
+	}
+	return nullptr;
+}
 
+bool UPAttributeComponent::IsActorAlive(AActor* Actor)
+{
+	UPAttributeComponent* AttributeComp = GetAttributes(Actor);
+	if (AttributeComp)
+	{
+		return AttributeComp->IsAlive();
+	}
+	return false;
+}

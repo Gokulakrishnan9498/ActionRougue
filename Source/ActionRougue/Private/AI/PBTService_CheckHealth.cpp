@@ -21,7 +21,7 @@ void UPBTService_CheckHealth::TickNode(UBehaviorTreeComponent& OwnerComp, uint8*
 		APawn* AIPawn = OwnerComp.GetAIOwner()->GetPawn();
 		if (ensure(AIPawn))
 		{
-			UPAttributeComponent* AttributeComp = Cast<UPAttributeComponent>(AIPawn->GetComponentByClass(UPAttributeComponent::StaticClass()));
+			UPAttributeComponent* AttributeComp = UPAttributeComponent::GetAttributes(AIPawn);
 			if (ensure(AttributeComp))
 			{
 				bool bLowHealth = (AttributeComp->GetHealth() / AttributeComp->GetMaxHealth()) < LowHealthFraction;

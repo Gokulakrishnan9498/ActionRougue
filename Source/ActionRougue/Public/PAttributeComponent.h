@@ -17,6 +17,12 @@ public:
 	// Sets default values for this component's properties
 	UPAttributeComponent();
 
+	UFUNCTION(BlueprintCallable,Category="Attributes")
+	static UPAttributeComponent* GetAttributes(AActor* FromActor);
+
+	UFUNCTION(BlueprintCallable,Category="Attributes",meta=(DisplayName="IsAlive"))
+	static bool IsActorAlive(AActor* Actor);
+
 protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	float Health;
@@ -41,7 +47,7 @@ public:
 	bool IsFullHealth() const;
 	
 	UFUNCTION(BlueprintCallable,Category="Attributes")
-	bool ApplyHealthChange (float Delta);
+	bool ApplyHealthChange (AActor* InstigatorActor , float Delta);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;

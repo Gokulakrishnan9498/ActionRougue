@@ -57,10 +57,10 @@ void APMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 {
 	if (OtherActor && OtherActor != GetInstigator())
 	{
-		UPAttributeComponent* AttributeComp = Cast<UPAttributeComponent>(OtherActor->GetComponentByClass(UPAttributeComponent::StaticClass()));
+		UPAttributeComponent* AttributeComp =UPAttributeComponent::GetAttributes(OtherActor);
 		if (AttributeComp)
 		{
-			AttributeComp->ApplyHealthChange(-DamageAmount);
+			AttributeComp->ApplyHealthChange(GetInstigator(),-DamageAmount);
 
 			Destroy();
 		}
