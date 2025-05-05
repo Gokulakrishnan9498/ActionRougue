@@ -45,5 +45,8 @@ public:
 	APGameModeBase();
 
 	virtual void StartPlay() override;
+
+	UFUNCTION(Exec)
+	void KillAll();
 	
 };

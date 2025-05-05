@@ -21,6 +21,20 @@ void APGameModeBase::StartPlay()
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBot,this,&APGameModeBase::SpawnBotTimeElapsed,SpawnBotInterval,true);
 }
 
+void APGameModeBase::KillAll()
+{
+	for(TActorIterator<APAICharacter> It(GetWorld()); It; ++It)
+	{
+		APAICharacter* Bot = *It;
+		UPAttributeComponent* AttributeComp = UPAttributeComponent::GetAttributes(Bot);
+		
+		if (ensure(AttributeComp) && AttributeComp->IsAlive())
+		{
+			AttributeComp->Kill(this);//@fixMe : Pass in Player to get Kill Credits.
+		}
+	}
+}
+
 void APGameModeBase::SpawnBotTimeElapsed()
 {
 	int32 NumOfAliveBots = 0;

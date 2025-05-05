@@ -189,6 +189,11 @@ void APHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 }
 
+void APHeroCharacter::HealSelf(float Amount /*=100*/)
+{
+	AttributeComp->ApplyHealthChange(this,Amount);
+}
+
 void APHeroCharacter::OnHealthChanged(AActor* InstigatorActor, UPAttributeComponent* OwningComp, float NewHealth,float Delta)
 {
 	if (Delta < 0.0f)
