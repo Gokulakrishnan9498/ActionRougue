@@ -6,7 +6,9 @@
 #include "AIController.h"
 #include "BrainComponent.h"
 #include "PAttributeComponent.h"
+#include "PWorldUserWidget.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/PawnSensingComponent.h"
 
@@ -22,7 +24,8 @@ APAICharacter::APAICharacter()
 
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	bUseControllerRotationYaw = false;
-	
+
+	TimeToHitParamName = "TimeToHit";
 
 }
 
@@ -41,6 +44,19 @@ void APAICharacter::OnHealthChanged(AActor* InstigatorActor, UPAttributeComponen
 		{
 			SetTargetActor(InstigatorActor);
 		}
+
+		if (ActiveHealthBar == nullptr)
+		{
+			ActiveHealthBar = CreateWidget<UPWorldUserWidget>(GetWorld(),HealthBarWidgetClass);
+			if (ActiveHealthBar)
+			{
+				ActiveHealthBar->AttachedActor = this;
+				ActiveHealthBar->AddToViewport();
+			}
+		}
+		
+		
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName , GetWorld()->TimeSeconds);
 		if (NewHealth <= 0.0f)
 		{
 			//stop BT

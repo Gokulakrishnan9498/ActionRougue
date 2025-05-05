@@ -3,11 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PWorldUserWidget.h"
 #include "GameFramework/Character.h"
 #include "PAICharacter.generated.h"
 
 class UPawnSensingComponent;
 class UPAttributeComponent;
+class UUserWidget;
+class UPWorldUserWidget;
 
 UCLASS()
 class ACTIONROUGUE_API APAICharacter : public ACharacter
@@ -19,11 +22,20 @@ public:
 	APAICharacter();
 
 protected:
+
+	UPWorldUserWidget* ActiveHealthBar;
+
+	UPROPERTY(EditDefaultsOnly,Category="UI")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+	
 	UPROPERTY(VisibleAnywhere,Category="Components")
 	UPawnSensingComponent* PawnSensingComp;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
 	UPAttributeComponent* AttributeComp;
+
+	UPROPERTY(VisibleAnywhere,Category="Effects")
+	FName TimeToHitParamName;
 
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, UPAttributeComponent* OwningComp, float NewHealth, float Delta);
