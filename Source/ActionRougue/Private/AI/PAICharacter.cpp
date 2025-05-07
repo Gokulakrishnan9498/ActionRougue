@@ -9,6 +9,7 @@
 #include "PWorldUserWidget.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/PawnSensingComponent.h"
 
@@ -21,6 +22,9 @@ APAICharacter::APAICharacter()
 	AttributeComp = CreateDefaultSubobject<UPAttributeComponent>(TEXT("AttributeComp"));
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic,ECR_Ignore);
+	GetMesh()->SetGenerateOverlapEvents(true);
 
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	bUseControllerRotationYaw = false;
@@ -55,8 +59,8 @@ void APAICharacter::OnHealthChanged(AActor* InstigatorActor, UPAttributeComponen
 			}
 		}
 		
-		
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName , GetWorld()->TimeSeconds);
+		//Died
 		if (NewHealth <= 0.0f)
 		{
 			//stop BT
@@ -68,6 +72,9 @@ void APAICharacter::OnHealthChanged(AActor* InstigatorActor, UPAttributeComponen
 			//Ragdoll
 			GetMesh()->SetAllBodiesSimulatePhysics(true);
 			GetMesh()->SetCollisionProfileName("Ragdoll");
+
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			GetCharacterMovement()->DisableMovement();
 
 			//Set Lifespan
 			SetLifeSpan(10.0f);

@@ -4,6 +4,7 @@
 #include "PMagicProjectile.h"
 
 #include "PAttributeComponent.h"
+#include "PGameplayFunctionLibrary.h"
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -40,6 +41,8 @@ APMagicProjectile::APMagicProjectile()
 	ImpactShakeInnerRadius = 250.0f;
 	ImpactShakeOuterRadius = 2500.0f;
 
+	InitialLifeSpan = 10.0f;
+
 }
 
 // Called when the game starts or when spawned
@@ -57,13 +60,18 @@ void APMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 {
 	if (OtherActor && OtherActor != GetInstigator())
 	{
-		UPAttributeComponent* AttributeComp =UPAttributeComponent::GetAttributes(OtherActor);
-		if (AttributeComp)
+		// UPAttributeComponent* AttributeComp =UPAttributeComponent::GetAttributes(OtherActor);
+		// if (AttributeComp)
+		// {
+		// 	AttributeComp->ApplyHealthChange(GetInstigator(),-DamageAmount);
+		// 	
+		// 	Destroy();
+		// }
+		if (UPGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(),OtherActor,DamageAmount,SweepResult))
 		{
-			AttributeComp->ApplyHealthChange(GetInstigator(),-DamageAmount);
-
 			Destroy();
 		}
+		
 	}
 	
 }

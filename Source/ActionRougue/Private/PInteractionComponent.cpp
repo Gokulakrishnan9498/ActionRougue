@@ -5,6 +5,8 @@
 #include "DrawDebugHelpers.h"
 #include "PGamePlayInterface.h"
 
+static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("pr.InteractionDebugDraw"),false,TEXT("Enables Debug lines for interaction Comp"),ECVF_Cheat);
+
 // Sets default values for this component's properties
 UPInteractionComponent::UPInteractionComponent()
 {
@@ -17,6 +19,8 @@ UPInteractionComponent::UPInteractionComponent()
 
 void UPInteractionComponent::PrimaryInteract()
 {
+	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+	
 	TArray<FHitResult> Hits;
 	
 	FVector EyeLocation;
@@ -40,6 +44,11 @@ void UPInteractionComponent::PrimaryInteract()
 	
 	for (FHitResult HitResult : Hits)
 	{
+		if (bDebugDraw)
+		{
+			DrawDebugSphere(GetWorld(),HitResult.ImpactPoint,Radius,32,LineColor,false,2.0f);
+		}
+		
 		AActor* HitActor = HitResult.GetActor();
 		if (HitActor)
 		{
@@ -50,9 +59,11 @@ void UPInteractionComponent::PrimaryInteract()
 				break;
 			}
 		}
-		DrawDebugSphere(GetWorld(),HitResult.ImpactPoint,Radius,32,LineColor,false,2.0f);
 	}
-	DrawDebugLine(GetWorld(),EyeLocation,End,LineColor,false,2.0f,0,2.0f);
+	if (bDebugDraw)
+	{
+		DrawDebugLine(GetWorld(),EyeLocation,End,LineColor,false,2.0f,0,2.0f);
+	}
 }
 
 
