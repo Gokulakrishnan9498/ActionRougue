@@ -12,6 +12,7 @@ class USpringArmComponent;
 class UPInteractionComponent;
 class UAnimMontage;
 class UPAttributeComponent;
+class UPActionComponent;
 
 UCLASS()
 class ACTIONROUGUE_API APHeroCharacter : public ACharacter
@@ -63,15 +64,22 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
 	UPInteractionComponent* InteractionComp;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
 	UPAttributeComponent* AttributeComp;
 
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
+	UPActionComponent* ActionComp;
+
 	void MoveForward(float Value);
 	
 	void MoveRight(float Value);
+
+	void StartSprint();
+
+	void StopSprint();
 
 	void StartAttackEffects();
 

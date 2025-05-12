@@ -3,6 +3,7 @@
 
 #include "PHeroCharacter.h"
 
+#include "PActionComponent.h"
 #include "PAttributeComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -25,6 +26,8 @@ APHeroCharacter::APHeroCharacter()
 	InteractionComp = CreateDefaultSubobject<UPInteractionComponent>(TEXT("InteractionComp"));
 
 	AttributeComp = CreateDefaultSubobject<UPAttributeComponent>(TEXT("AttributeComp"));
+
+	ActionComp = CreateDefaultSubobject<UPActionComponent>(TEXT("ActionComp"));
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	
@@ -76,6 +79,16 @@ void APHeroCharacter::MoveRight(float Value)
 	FVector RightVector = FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y);
 	
 	AddMovementInput(RightVector , Value);
+}
+
+void APHeroCharacter::StartSprint()
+{
+	ActionComp->StartActionByName(this,"Sprint");
+}
+
+void APHeroCharacter::StopSprint()
+{
+	ActionComp->StopActionByName(this,"Sprint");
 }
 
 void APHeroCharacter::StartAttackEffects()
@@ -191,6 +204,8 @@ void APHeroCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	PlayerInputComponent->BindAction("PrimaryInteract",IE_Pressed,this,&APHeroCharacter::PrimaryInteract);
 	PlayerInputComponent->BindAction("DashAttack",IE_Pressed,this,&APHeroCharacter::DashAttack);
 	PlayerInputComponent->BindAction("BlackHoleAttack",IE_Pressed,this,&APHeroCharacter::BlackHoleAttack);
+	PlayerInputComponent->BindAction("Sprint",IE_Pressed,this,&APHeroCharacter::StartSprint);
+	PlayerInputComponent->BindAction("Sprint",IE_Released,this,&APHeroCharacter::StopSprint);
 
 }
 
