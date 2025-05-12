@@ -21,11 +21,23 @@ class ACTIONROUGUE_API APGameModeBase : public AGameModeBase
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category="Credits")
+	int32 CreditsPerKill;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category="PowerUps")
+	int32 DesiredPowerupCount;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite,Category="PowerUps")
+	int32 RequiredPowerupDistance;
+	
 	UPROPERTY(EditDefaultsOnly,Category="AI")
 	UCurveFloat* DifficultyCurve;
 	
 	UPROPERTY(EditDefaultsOnly,Category="AI")
 	TSubclassOf<AActor> MinionClass;
+
+	UPROPERTY(EditDefaultsOnly,Category="PowerUps")
+	TArray<TSubclassOf<AActor>> PowerUpClasses;
 	
 	UPROPERTY(EditDefaultsOnly,Category="AI")
 	float SpawnBotInterval;
@@ -35,11 +47,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly,Category="AI")
 	UEnvQuery* SpawnBotQuery;
 
+	UPROPERTY(EditDefaultsOnly,Category="PowerUps")
+	UEnvQuery* PowerUpSpawnQuery;
+
 	UFUNCTION()
 	void SpawnBotTimeElapsed();
 
 	UFUNCTION()
-	void OnQueryCompleted( UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+	void OnBotSpawnQueryCompleted( UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+
+	UFUNCTION()
+	void OnPowerUpSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 
 	UFUNCTION()
 	void RespawnPlayerTimerElapsed(AController* Controller);

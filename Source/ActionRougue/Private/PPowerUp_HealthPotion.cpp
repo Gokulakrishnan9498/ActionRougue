@@ -4,13 +4,17 @@
 #include "PPowerUp_HealthPotion.h"
 
 #include "PAttributeComponent.h"
-#include "SkeletonTreeBuilder.h"
+#include "PHeroPlayerState.h"
+
+
 
 APPowerUp_HealthPotion::APPowerUp_HealthPotion()
 {
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	MeshComp->SetupAttachment(RootComponent);
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
+	// MeshComp->SetupAttachment(RootComponent);
+	// MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	CreditCost = 50;
 }
 
 void APPowerUp_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
@@ -20,12 +24,19 @@ void APPowerUp_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 	{
 		return;
 	}
+	
 	UPAttributeComponent* AttributeComp =UPAttributeComponent::GetAttributes(InstigatorPawn);
-	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())
-	{
-		if (AttributeComp->ApplyHealthChange(this,AttributeComp->GetMaxHealth()))
+	
+		if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())
 		{
-			HideAndFreezePowerUp();
+			if (APHeroPlayerState* PS = InstigatorPawn->GetPlayerState<APHeroPlayerState>())
+			{
+				if (PS->RemoveCredits(CreditCost) && AttributeComp->ApplyHealthChange(this,AttributeComp->GetMaxHealth()))
+				{
+					HideAndFreezePowerUp();
+				}
+			}
 		}
-	}
+	
+	
 }

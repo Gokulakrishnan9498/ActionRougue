@@ -4,26 +4,31 @@
 
 #include "CoreMinimal.h"
 #include "PPowerUpActor.h"
-#include "PPowerUp_HealthPotion.generated.h"
+#include "PPowerUp_Credits.generated.h"
 
 /**
  * 
  */
 class UStaticMeshComponent;
+
 UCLASS()
-class ACTIONROUGUE_API APPowerUp_HealthPotion : public APPowerUpActor
+class ACTIONROUGUE_API APPowerUp_Credits : public APPowerUpActor 
 {
 	GENERATED_BODY()
+
 private:
-	// UPROPERTY(VisibleAnywhere,Category= "Components")
+	// UPROPERTY(VisibleAnywhere,Category="Components")
 	// UStaticMeshComponent* MeshComp;
 
 	UPROPERTY(EditAnywhere,Category="Credits")
-	int32 CreditCost;
-
-public:
-	APPowerUp_HealthPotion();
+	int32 CreditAmount;
 	
+public:
+	APPowerUp_Credits();
+
 	void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	
+	
 	
 };
