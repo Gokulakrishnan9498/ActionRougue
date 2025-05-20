@@ -33,6 +33,9 @@ protected:
 	UPROPERTY()
 	TArray<UPAction*> Actions;
 
+	UPROPERTY(EditAnywhere,Category="Action")
+	TArray<TSubclassOf<UPAction>> DefaultActions;
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

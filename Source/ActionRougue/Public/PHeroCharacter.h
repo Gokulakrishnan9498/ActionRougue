@@ -24,37 +24,10 @@ public:
 	APHeroCharacter();
 
 protected:
-	FTimerHandle TimerHandle_PrimaryAttack;
-	FTimerHandle TimerHandle_DashAttack;
-	FTimerHandle TimerHandle_BlackHoleAttack;
-	
-
-	UPROPERTY(EditAnywhere, Category="Attack")
-	TSubclassOf<AActor> ProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category="Attack")
-	TSubclassOf<AActor> BlackHoleProjectileClass;
-
-	UPROPERTY(EditAnywhere,Category="Attack")
-	TSubclassOf<AActor> DashProjectileClass;
-
-protected:
 	// Called when the game starts or when spawned
-
-	UPROPERTY(VisibleAnywhere , Category="Effects")
-	FName HandSocketName;
-
+	
 	UPROPERTY(VisibleAnywhere , Category="Effects")
 	FName TimeToHitParamName;
-
-	UPROPERTY(EditDefaultsOnly,Category="Attack");
-	UAnimMontage* AttackAnim;
-
-	UPROPERTY(EditDefaultsOnly,Category="Attack")
-	UParticleSystem* CastingEffect;
-
-	UPROPERTY(EditDefaultsOnly,Category="Attack")
-	float AnimDelay;
 	
 	virtual void BeginPlay() override;
 	
@@ -81,23 +54,13 @@ protected:
 
 	void StopSprint();
 
-	void StartAttackEffects();
-
 	void PrimaryAttack();
-
-	void PrimaryAttack_TimeElapsed();
 
 	void DashAttack();
 
-	void DashAttack_TimeElapsed();
-
 	void BlackHoleAttack();
 
-	void BlackHoleAttack_TimeElapsed();
-
 	void PrimaryInteract();
-
-	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
 
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, UPAttributeComponent* OwningComp, float NewHealth, float Delta);

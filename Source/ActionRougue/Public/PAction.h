@@ -9,6 +9,8 @@
 /**
  * 
  */
+class UWorld;
+
 UCLASS(Blueprintable)
 class ACTIONROUGUE_API UPAction : public UObject
 {
@@ -22,5 +24,7 @@ class ACTIONROUGUE_API UPAction : public UObject
 
 	UPROPERTY(EditDefaultsOnly,Category="Action")
 	FName ActionName;
+
+	UWorld* GetWorld() const override;
 	
 };

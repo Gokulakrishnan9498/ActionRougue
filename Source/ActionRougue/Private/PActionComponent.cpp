@@ -9,6 +9,16 @@ UPActionComponent::UPActionComponent()
 	
 }
 
+void UPActionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	for (TSubclassOf<UPAction> ActionClass : DefaultActions)
+	{
+		AddAction(ActionClass);
+	}
+	
+}
+
 void UPActionComponent::AddAction(TSubclassOf<UPAction> ActionClass)
 {
 	if (!ensure(ActionClass))
@@ -46,13 +56,6 @@ bool UPActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
 		}
 	}
 	return false;
-}
-
-
-void UPActionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	
 }
 
 
