@@ -189,8 +189,8 @@ void APGameModeBase::OnActorKilled(AActor* VictimActor, AActor* Killer)
 {
 	UE_LOG(LogTemp,Log,TEXT("OnActorKilled , VictimActor : %s & Killer : %s"),*GetNameSafe(VictimActor),*GetNameSafe(Killer));
 	
-	APHeroCharacter* Player = Cast<APHeroCharacter>(VictimActor);
-	if (ensure(Player))
+	
+	if (APHeroCharacter* Player = Cast<APHeroCharacter>(VictimActor))
 	{
 		FTimerHandle TimerHandle_RespawnDelay;
 

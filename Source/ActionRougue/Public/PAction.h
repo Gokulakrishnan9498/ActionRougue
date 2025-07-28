@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "GameplayTagContainer.h"
 #include "PAction.generated.h"
 
 /**
@@ -15,11 +16,34 @@ UCLASS(Blueprintable)
 class ACTIONROUGUE_API UPAction : public UObject
 {
 	GENERATED_BODY()
-	public:
+
+protected:
+	UFUNCTION(BlueprintCallable, Category="Action")
+	UPActionComponent* GetOwningComponent() const;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Tags")
+	FGameplayTagContainer GrantedTags;
+
+	UPROPERTY(EditDefaultsOnly, Category="Tags")
+	FGameplayTagContainer BlockedTags;
+
+	bool bIsRunning;
+
+public:
+
+	UPROPERTY(EditDefaultsOnly,Category="Action")
+	bool bAutoStart;
+	
+	UFUNCTION(BlueprintCallable, Category="Action")
+	bool IsRunning() const;
+	
+	UFUNCTION(BlueprintNativeEvent, Category="Action")
+	bool CanStart(AActor* Instigator);
+	
 	UFUNCTION(BlueprintNativeEvent,Category="Action")
 	void StartAction(AActor* Instigator);
 
-	UFUNCTION(BlueprintNativeEvent,Category="Action")
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent,Category="Action")
 	void StopAction(AActor* Instigator);
 
 	UPROPERTY(EditDefaultsOnly,Category="Action")

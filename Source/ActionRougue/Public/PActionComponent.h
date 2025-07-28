@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "PAction.h"
 #include "Components/ActorComponent.h"
 #include "PActionComponent.generated.h"
@@ -17,14 +18,20 @@ public:
 	// Sets default values for this component's properties
 	UPActionComponent();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Tags")
+	FGameplayTagContainer ActiveGameplayTags;
+
 	UFUNCTION(BlueprintCallable,Category="Action")
-	void AddAction(TSubclassOf<UPAction> ActionClass);
+	void AddAction(AActor* Instigator, TSubclassOf<UPAction> ActionClass);
 
 	UFUNCTION(BlueprintCallable,Category="Action")
 	bool StartActionByName(AActor* Instigator , FName ActionName);
 
 	UFUNCTION(BlueprintCallable,Category="Action")
 	bool StopActionByName(AActor* Instigator , FName ActionName);
+
+	UFUNCTION(BlueprintCallable,Category="Action")
+	void RemoveAction(UPAction* ActionToRemove);
 
 protected:
 	// Called when the game starts

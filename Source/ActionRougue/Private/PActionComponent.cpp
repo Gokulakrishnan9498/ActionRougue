@@ -14,12 +14,12 @@ void UPActionComponent::BeginPlay()
 	Super::BeginPlay();
 	for (TSubclassOf<UPAction> ActionClass : DefaultActions)
 	{
-		AddAction(ActionClass);
+		AddAction(GetOwner(), ActionClass);
 	}
 	
 }
 
-void UPActionComponent::AddAction(TSubclassOf<UPAction> ActionClass)
+void UPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UPAction> ActionClass)
 {
 	if (!ensure(ActionClass))
 	{
@@ -30,6 +30,10 @@ void UPActionComponent::AddAction(TSubclassOf<UPAction> ActionClass)
 	{
 		Actions.Add(NewAction);
 	}
+	if (NewAction->bAutoStart && ensure(NewAction->CanStart(Instigator)))
+	{
+		NewAction->StartAction(Instigator);
+	}
 }
 
 bool UPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
@@ -38,6 +42,12 @@ bool UPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 	{
 		if (Action && Action->ActionName == ActionName)
 		{
+			if (!Action->CanStart(Instigator))
+			{
+				FString failedMsg = FString::Printf(TEXT("Failed to run %s"), *ActionName.ToString());
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, failedMsg);
+				continue;
+			}
 			Action->StartAction(Instigator);
 			return true;
 		}
@@ -51,17 +61,32 @@ bool UPActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
 	{
 		if (Action && Action->ActionName == ActionName)
 		{
-			Action->StopAction(Instigator);
-			return true;
+			if (Action->IsRunning())
+			{
+				Action->StopAction(Instigator);
+				return true;
+			}
 		}
 	}
 	return false;
+}
+
+void UPActionComponent::RemoveAction(UPAction* ActionToRemove)
+{
+	if (!ensure(ActionToRemove && !ActionToRemove->IsRunning()))
+	{
+		return;
+	}
+	Actions.Remove(ActionToRemove);
 }
 
 
 void UPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	FString DebugMsg = GetNameSafe(GetOwner()) + ":" + ActiveGameplayTags.ToStringSimple();
+	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
 	
 }
 

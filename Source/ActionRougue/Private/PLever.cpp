@@ -3,6 +3,7 @@
 
 #include "PLever.h"
 
+#include "PActionComponent.h"
 #include "PExplosiveBarrel.h"
 
 // Sets default values
@@ -37,13 +38,17 @@ void APLever::Tick(float DeltaTime)
 
 void APLever::Interact_Implementation(APawn* InstigatorPawn)
 {
-	//IPGamePlayInterface::Interact_Implementation(InstigatorPawn);
-	if (TargetBarrel)
+	if (!InstigatorPawn) return;
+
+	if (UPActionComponent* ActionComp = InstigatorPawn->GetComponentByClass<UPActionComponent>())
+	{
+		ActionComp->ActiveGameplayTags.AddTag(KeyCard);
+	}
+
+	if (Lever)
 	{
 		Lever->SetRelativeRotation(FRotator(-LeverRot, 0, 0));
-		TargetBarrel->Explode();
 	}
-	
 	
 }
 	

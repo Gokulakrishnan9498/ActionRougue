@@ -5,6 +5,7 @@
 
 #include "AIController.h"
 #include "BrainComponent.h"
+#include "PActionComponent.h"
 #include "PAttributeComponent.h"
 #include "PWorldUserWidget.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -20,6 +21,8 @@ APAICharacter::APAICharacter()
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
 
 	AttributeComp = CreateDefaultSubobject<UPAttributeComponent>(TEXT("AttributeComp"));
+
+	ActionComp = CreateDefaultSubobject<UPActionComponent>(TEXT("ActionComp"));
 
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 

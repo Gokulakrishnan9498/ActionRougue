@@ -7,6 +7,8 @@
 #include "PInteractionComponent.generated.h"
 
 
+class UPWorldUserWidget;
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONROUGUE_API UPInteractionComponent : public UActorComponent
 {
@@ -21,6 +23,26 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+
+	void FindBestInteractable();
+
+	UPROPERTY()
+	AActor* FocusedActor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	TSubclassOf<UPWorldUserWidget> DefaultWidgetClass;
+
+	UPROPERTY()
+	UPWorldUserWidget* DefaultWidgetInstance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float TraceDistance;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	float TraceRadius;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	TEnumAsByte<ECollisionChannel> CollisionChannel;
 
 public:	
 	// Called every frame

@@ -11,6 +11,7 @@ class UPawnSensingComponent;
 class UPAttributeComponent;
 class UUserWidget;
 class UPWorldUserWidget;
+class UPActionComponent;
 
 UCLASS()
 class ACTIONROUGUE_API APAICharacter : public ACharacter
@@ -33,6 +34,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
 	UPAttributeComponent* AttributeComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
+	UPActionComponent* ActionComp;
 
 	UPROPERTY(VisibleAnywhere,Category="Effects")
 	FName TimeToHitParamName;

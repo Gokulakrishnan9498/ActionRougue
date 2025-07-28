@@ -4,6 +4,8 @@
 #include "PInteractionComponent.h"
 #include "DrawDebugHelpers.h"
 #include "PGamePlayInterface.h"
+#include "PWorldUserWidget.h"
+#include "Blueprint/UserWidget.h"
 
 static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("pr.InteractionDebugDraw"),false,TEXT("Enables Debug lines for interaction Comp"),ECVF_Cheat);
 
@@ -14,58 +16,10 @@ UPInteractionComponent::UPInteractionComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
+	TraceRadius = 30.0f;
+	TraceDistance = 500.0f;
+	CollisionChannel = ECC_WorldDynamic;
 }
-
-void UPInteractionComponent::PrimaryInteract()
-{
-	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
-	
-	TArray<FHitResult> Hits;
-	
-	FVector EyeLocation;
-	FRotator EyeRotation;
-	
-	AActor* MyOwner = GetOwner();
-	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-
-	FVector End = EyeLocation + (EyeRotation.Vector() * 1000.0f);
-
-	FCollisionObjectQueryParams ObjectQueryParams;
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-
-	FCollisionShape Shape;
-	float Radius = 30.0f;
-	Shape.SetSphere(Radius);
-	
-	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation ,End , FQuat::Identity, ObjectQueryParams, Shape);
-
-	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
-	
-	for (FHitResult HitResult : Hits)
-	{
-		if (bDebugDraw)
-		{
-			DrawDebugSphere(GetWorld(),HitResult.ImpactPoint,Radius,32,LineColor,false,2.0f);
-		}
-		
-		AActor* HitActor = HitResult.GetActor();
-		if (HitActor)
-		{
-			if (HitActor->Implements<UPGamePlayInterface>())
-			{
-				APawn* MyPawn = Cast<APawn>(MyOwner);
-				IPGamePlayInterface::Execute_Interact(HitActor , MyPawn);
-				break;
-			}
-		}
-	}
-	if (bDebugDraw)
-	{
-		DrawDebugLine(GetWorld(),EyeLocation,End,LineColor,false,2.0f,0,2.0f);
-	}
-}
-
 
 // Called when the game starts
 void UPInteractionComponent::BeginPlay()
@@ -82,6 +36,93 @@ void UPInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	FindBestInteractable();
+}
+
+void UPInteractionComponent::FindBestInteractable()
+{
+	bool bDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+	
+	TArray<FHitResult> Hits;
+	
+	FVector EyeLocation;
+	FRotator EyeRotation;
+	
+	AActor* MyOwner = GetOwner();
+	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+
+	FVector End = EyeLocation + (EyeRotation.Vector() * TraceDistance);
+
+	FCollisionObjectQueryParams ObjectQueryParams;
+	ObjectQueryParams.AddObjectTypesToQuery(CollisionChannel);
+
+	FCollisionShape Shape;
+	
+	Shape.SetSphere(TraceRadius);
+	
+	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation ,End , FQuat::Identity, ObjectQueryParams, Shape);
+
+	FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
+
+	FocusedActor = nullptr;
+	
+	for (FHitResult HitResult : Hits)
+	{
+		if (bDebugDraw)
+		{
+			DrawDebugSphere(GetWorld(),HitResult.ImpactPoint,TraceRadius,32,LineColor,false,2.0f);
+		}
+		
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor)
+		{
+			if (HitActor->Implements<UPGamePlayInterface>())
+			{
+				FocusedActor = HitActor;
+				break;
+			}
+		}
+	}
+	
+	if (FocusedActor)
+	{
+		if (DefaultWidgetInstance == nullptr && ensure(DefaultWidgetClass))
+		{
+			DefaultWidgetInstance = CreateWidget<UPWorldUserWidget>(GetWorld(),DefaultWidgetClass);
+		}
+		if (DefaultWidgetInstance)
+		{
+			DefaultWidgetInstance->AttachedActor = FocusedActor;
+			
+			if (!DefaultWidgetInstance->IsInViewport())
+			{
+				DefaultWidgetInstance->AddToViewport();
+			}
+		}		
+	}
+	else
+	{
+		if (DefaultWidgetInstance)
+		{
+			DefaultWidgetInstance->RemoveFromParent();
+		}
+	}
+	
+	if (bDebugDraw)
+	{
+		DrawDebugLine(GetWorld(),EyeLocation,End,LineColor,false,2.0f,0,2.0f);
+	}
+}
+
+
+void UPInteractionComponent::PrimaryInteract()
+{
+	if (FocusedActor == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "No Focus Actor to Interact.");
+		return;
+	}
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+	IPGamePlayInterface::Execute_Interact(FocusedActor , MyPawn);
 }
 

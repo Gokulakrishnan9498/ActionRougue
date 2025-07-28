@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "PExplosiveBarrel.h"
 #include "PGamePlayInterface.h"
 #include "GameFramework/Actor.h"
@@ -32,8 +33,11 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Lever")
 	float LeverRot;
 
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Lever")
-	APExplosiveBarrel* TargetBarrel;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="KeyCard")
+	FGameplayTag KeyCard;
+
+	//UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Lever")
+	//APExplosiveBarrel* TargetBarrel;
 
 
 public:	

@@ -3,6 +3,7 @@
 
 #include "PMagicProjectile.h"
 
+#include "PActionComponent.h"
 #include "PAttributeComponent.h"
 #include "PGameplayFunctionLibrary.h"
 #include "Components/AudioComponent.h"
@@ -11,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
+#include "PAction_Effect.h"
 
 // Sets default values
 APMagicProjectile::APMagicProjectile()
@@ -35,6 +37,7 @@ APMagicProjectile::APMagicProjectile()
 	MovementComp->InitialSpeed = 3000.0f;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bInitialVelocityInLocalSpace = true;
+	MovementComp->ProjectileGravityScale = 0.0f;
 
 	DamageAmount = 20.0f;
 
@@ -60,16 +63,20 @@ void APMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 {
 	if (OtherActor && OtherActor != GetInstigator())
 	{
-		// UPAttributeComponent* AttributeComp =UPAttributeComponent::GetAttributes(OtherActor);
-		// if (AttributeComp)
-		// {
-		// 	AttributeComp->ApplyHealthChange(GetInstigator(),-DamageAmount);
-		// 	
-		// 	Destroy();
-		// }
+		UPActionComponent* ActionComp = Cast<UPActionComponent>(OtherActor->GetComponentByClass(UPActionComponent::StaticClass()));
+		if (ActionComp && ActionComp->ActiveGameplayTags.HasTag(ParryTag))
+		{
+			MovementComp->Velocity = -MovementComp->Velocity;
+			SetInstigator(Cast<APawn>(OtherActor));
+			return;
+		}
 		if (UPGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(),OtherActor,DamageAmount,SweepResult))
 		{
 			Destroy();
+			if (ActionComp)
+			{
+				ActionComp->AddAction(GetInstigator(), BurningActionClass);
+			}
 		}
 		
 	}

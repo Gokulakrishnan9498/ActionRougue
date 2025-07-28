@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "PGamePlayInterface.h"
 #include "GameFramework/Actor.h"
 #include "PTreasureChest.generated.h"
@@ -31,6 +32,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	UStaticMeshComponent* LidMesh;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="KeyCard")
+	FGameplayTag RequiredKeyCard;
 
 public:	
 	// Called every frame

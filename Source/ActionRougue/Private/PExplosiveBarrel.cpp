@@ -33,7 +33,7 @@ APExplosiveBarrel::APExplosiveBarrel()
 void APExplosiveBarrel::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	//if (BarrelMesh)
+	if (BarrelMesh)
 	//{
 		BarrelMesh->OnComponentHit.AddDynamic(this,&APExplosiveBarrel::OnBarrelHit);
 	//}
@@ -43,16 +43,17 @@ void APExplosiveBarrel::OnBarrelHit(UPrimitiveComponent* HitComponent, AActor* O
 {
 	if (OtherActor && OtherActor != this && DamagedActor == nullptr)
 	{
+		DamagedActor = OtherActor;
 		RadialForce->FireImpulse();
 		
 
-		if (DamagedActor == OtherActor)
-		{
-			// Already damaged this actor
-			return;
-		}
+		// if (DamagedActor == OtherActor)
+		// {
+		// 	// Already damaged this actor
+		// 	return;
+		// }
 		
-		DamagedActor = OtherActor;
+		
 
 		//DamagedActor.Add(OtherActor);tried using TSet<AActor*>
 

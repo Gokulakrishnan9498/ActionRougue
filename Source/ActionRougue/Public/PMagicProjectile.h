@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Actor.h"
 #include "PMagicProjectile.generated.h"
 
+class UPAction_Effect;
 class USphereComponent;
 class UParticleSystemComponent;
 class UProjectileMovementComponent;
@@ -58,6 +60,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly , Category="Damage")
 	USoundCue* ImpactSound;
+
+	UPROPERTY(EditDefaultsOnly , Category="Damage")
+	FGameplayTag ParryTag;
+
+	UPROPERTY(EditDefaultsOnly , Category="Damage")
+	TSubclassOf<UPAction_Effect> BurningActionClass;
 
 	UFUNCTION()
 	void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
