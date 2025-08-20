@@ -3,6 +3,8 @@
 
 #include "PTreasureChest.h"
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 APTreasureChest::APTreasureChest()
 {
@@ -17,25 +19,34 @@ APTreasureChest::APTreasureChest()
 
 	TargetPitch = 110.0f;
 
+	bReplicates = true;
+
 }
+
 
 void APTreasureChest::Interact_Implementation(APawn* InstigatorPawn)
 {
-	//IPGamePlayInterface::Interact_Implementation(InstigatorPawn);
-	LidMesh->SetRelativeRotation(FRotator(TargetPitch, 0, 0));
+	bLidOpened = !bLidOpened;
+	OnRep_LidOpened();
 }
 
-// Called when the game starts or when spawned
-void APTreasureChest::BeginPlay()
+void APTreasureChest::OnActorLoaded_Implementation()
 {
-	Super::BeginPlay();
-	
+	OnRep_LidOpened();
 }
 
-// Called every frame
-void APTreasureChest::Tick(float DeltaTime)
+void APTreasureChest::OnRep_LidOpened()
 {
-	Super::Tick(DeltaTime);
-
+	float CurrentPitch = bLidOpened ? TargetPitch : 0.0f;
+	LidMesh->SetRelativeRotation(FRotator(CurrentPitch, 0, 0));
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_LidOpened: %s"), bLidOpened ? TEXT("Open") : TEXT("Closed"));
 }
+
+void APTreasureChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(APTreasureChest, bLidOpened);
+}
+
 

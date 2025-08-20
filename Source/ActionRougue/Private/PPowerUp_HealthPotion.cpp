@@ -7,6 +7,7 @@
 #include "PHeroPlayerState.h"
 
 
+#define LOCTEXT_NAMESPACE "InteractableActors"
 
 APPowerUp_HealthPotion::APPowerUp_HealthPotion()
 {
@@ -40,3 +41,15 @@ void APPowerUp_HealthPotion::Interact_Implementation(APawn* InstigatorPawn)
 	
 	
 }
+
+FText APPowerUp_HealthPotion::GetInteractText_Implementation(APawn* InstigatorPawn)
+{
+	UPAttributeComponent* AttributeComp =UPAttributeComponent::GetAttributes(InstigatorPawn);
+	if (AttributeComp && AttributeComp->IsFullHealth())
+	{
+		return LOCTEXT("HealthPotion_FullHealthWarning", "Already at Full Health");
+	}
+	return FText::Format(LOCTEXT("HealthPotion_InteractText", "Cost {0} Credits. Restores Health to Maximum."), CreditCost);
+}
+
+#undef LOCTEXT_NAMESPACE

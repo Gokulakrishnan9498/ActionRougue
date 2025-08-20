@@ -35,6 +35,8 @@ APProjectileBase::APProjectileBase()
 
 	ImpactShakeInnerRadius = 250.0f;
 	ImpactShakeOuterRadius = 2500.0f;
+
+	bReplicates = true;
 	
 }
 

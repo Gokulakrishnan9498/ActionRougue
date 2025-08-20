@@ -26,16 +26,21 @@ APExplosiveBarrel::APExplosiveBarrel()
 	RadialForce->bImpulseVelChange = true;
 	RadialForce->SetAutoActivate(false);
 	RadialForce->AddCollisionChannelToAffect(ECC_WorldDynamic);
+
+	bReplicates = true;
 	
 }
+
+
 
 
 void APExplosiveBarrel::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-	if (BarrelMesh)
+	//if (BarrelMesh)
 	//{
-		BarrelMesh->OnComponentHit.AddDynamic(this,&APExplosiveBarrel::OnBarrelHit);
+	BarrelMesh->OnComponentHit.RemoveDynamic(this, &APExplosiveBarrel::OnBarrelHit);
+		BarrelMesh->OnComponentHit.AddDynamic(this, &APExplosiveBarrel::OnBarrelHit);
 	//}
 }
 
@@ -64,6 +69,8 @@ void APExplosiveBarrel::OnBarrelHit(UPrimitiveComponent* HitComponent, AActor* O
 		}
 
 		SetLifeSpan(7.0f);
+
+		MultiCastExplode();
 		
 		UE_LOG(LogTemp,Log,TEXT("OnActorHit in Explosive Barrel"));
 		UE_LOG(LogTemp,Warning,TEXT("Other actor : %s at Game time : %f"), *GetNameSafe(OtherActor), GetWorld()->GetTimeSeconds());
@@ -71,10 +78,17 @@ void APExplosiveBarrel::OnBarrelHit(UPrimitiveComponent* HitComponent, AActor* O
 		DrawDebugString(GetWorld(),Hit.ImpactPoint,CombinedString,nullptr,FColor::Green,2.0f,true);
 	}
 }
+ void APExplosiveBarrel::Explode()
+ {
+ 	RadialForce->FireImpulse();
+ 	MultiCastExplode();
+ }
 
-
-void APExplosiveBarrel::Explode()
+void APExplosiveBarrel::MultiCastExplode_Implementation()
 {
-	RadialForce->FireImpulse();
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
 }
+
+
 

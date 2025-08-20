@@ -2,8 +2,15 @@
 
 
 #include "PAction.h"
-#include "PActionComponent.h"
 
+#include "ActionRougue.h"
+#include "PActionComponent.h"
+#include "Net/UnrealNetwork.h"
+
+void UPAction::Initialize(UPActionComponent* NewActionComp)
+{
+	ActionComp = NewActionComp;
+}
 
 bool UPAction::CanStart_Implementation(AActor* Instigator)
 {
@@ -22,33 +29,47 @@ bool UPAction::CanStart_Implementation(AActor* Instigator)
 void UPAction::StartAction_Implementation(AActor* Instigator)
 {
 	UE_LOG(LogTemp,Log,TEXT("Running : %s"),*GetNameSafe(this));
+
+	//LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *ActionName.ToString()), FColor::Green);
 	
 	UPActionComponent* Comp = GetOwningComponent();
 	Comp->ActiveGameplayTags.AppendTags(GrantedTags);
 
-	bIsRunning = true;
+	RepData.bIsRunning = true;
+	RepData.Instigator = Instigator;
+
+	if (GetOwningComponent()->GetOwnerRole() == ROLE_Authority)
+	{
+		TimeStarted = GetWorld()->TimeSeconds;
+	}
+	GetOwningComponent()->OnActionStarted.Broadcast(GetOwningComponent(), this);
 }
 
 void UPAction::StopAction_Implementation(AActor* Instigator)
 {
 	UE_LOG(LogTemp,Log,TEXT("Stopped : %s"),*GetNameSafe(this));
 
-	ensureAlways(bIsRunning);
+	//LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *ActionName.ToString()), FColor::White);
+
+	//ensureAlways(bIsRunning);
 
 	UPActionComponent* Comp = GetOwningComponent();
 	Comp->ActiveGameplayTags.RemoveTags(GrantedTags);
 
-	bIsRunning = false;
+	RepData.bIsRunning = false;
+	RepData.Instigator = Instigator;
+
+	GetOwningComponent()->OnActionStopped.Broadcast(GetOwningComponent(), this);
 }
 
 
 UWorld* UPAction::GetWorld() const
 {
 	// Outer is set when creating Action via NewObject<T>
-	UActorComponent* Comp = Cast<UActorComponent>(GetOuter());
-	if (Comp)
+	AActor* Actor = Cast<AActor>(GetOuter());
+	if (Actor)
 	{
-		return Comp->GetWorld();
+		return Actor->GetWorld();
 	}
 	return nullptr;
 }
@@ -56,12 +77,34 @@ UWorld* UPAction::GetWorld() const
 
 UPActionComponent* UPAction::GetOwningComponent() const
 {
-	return Cast<UPActionComponent>(GetOuter());
+	// AActor* Actor = Cast<AActor>(GetOuter());
+	// return Actor->GetComponentByClass(UPActionComponent::StaticClass());
+
+	return ActionComp;
 }
+
+void UPAction::OnRep_RepData()
+{
+	if (RepData.bIsRunning)
+	{
+		StartAction(RepData.Instigator);
+	}
+	else
+	{
+		StopAction(RepData.Instigator);
+	}
+}
+
 
 bool UPAction::IsRunning() const
 {
-	return bIsRunning;
+	return RepData.bIsRunning;
 }
 
-
+void UPAction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UPAction, RepData);
+	DOREPLIFETIME(UPAction, TimeStarted);
+	DOREPLIFETIME(UPAction, ActionComp);
+}

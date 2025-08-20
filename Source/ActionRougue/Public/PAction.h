@@ -12,12 +12,35 @@
  */
 class UWorld;
 
+USTRUCT()
+
+struct FActionRepData
+{
+GENERATED_BODY()
+	
+public:
+
+	UPROPERTY()
+	bool bIsRunning;
+
+	UPROPERTY()
+	AActor* Instigator;
+	
+};
+
 UCLASS(Blueprintable)
 class ACTIONROUGUE_API UPAction : public UObject
 {
 	GENERATED_BODY()
 
 protected:
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="UI")
+	TSoftObjectPtr<UTexture2D> Icon;
+	
+	UPROPERTY(Replicated)
+	UPActionComponent* ActionComp;
+	
 	UFUNCTION(BlueprintCallable, Category="Action")
 	UPActionComponent* GetOwningComponent() const;
 	
@@ -27,9 +50,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category="Tags")
 	FGameplayTagContainer BlockedTags;
 
-	bool bIsRunning;
+	UPROPERTY(ReplicatedUsing="OnRep_RepData")
+	FActionRepData RepData;
+	//bool bIsRunning;
+
+	UPROPERTY(Replicated)
+	float TimeStarted;
+
+	UFUNCTION()
+	void OnRep_RepData();
 
 public:
+	
+	void Initialize(UPActionComponent* NewActionComp);
 
 	UPROPERTY(EditDefaultsOnly,Category="Action")
 	bool bAutoStart;
@@ -50,5 +83,9 @@ public:
 	FName ActionName;
 
 	UWorld* GetWorld() const override;
-	
+
+	bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
 };

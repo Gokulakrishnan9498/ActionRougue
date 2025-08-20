@@ -4,6 +4,7 @@
 #include "PAttributeComponent.h"
 
 #include "PGameModeBase.h"
+#include "Net/UnrealNetwork.h"
 
 static TAutoConsoleVariable<float> CVarDamageMultiplier (TEXT("pr.DamageMultiplier"),1.0f,TEXT("Damage Multiplier for Attribute Component"),ECVF_Cheat);
 
@@ -12,7 +13,14 @@ UPAttributeComponent::UPAttributeComponent()
 {
 	HealthMax = 100;
 	Health = HealthMax;
+
+	Rage = 0;
+	RageMax = 100;
+
+	SetIsReplicatedByDefault(true);
 }
+
+
 
 bool UPAttributeComponent::IsAlive() const
 {
@@ -41,7 +49,7 @@ bool UPAttributeComponent::IsFullHealth() const
 
 bool UPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor , float Delta)
 {
-	if (!GetOwner()->CanBeDamaged())
+	if (!GetOwner()->CanBeDamaged() && Delta < 0.0f)
 	{
 		return false;
 	}
@@ -51,21 +59,54 @@ bool UPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor , float Del
 		float DamageMultiplier = CVarDamageMultiplier.GetValueOnGameThread();
 		Delta *= DamageMultiplier;
 	}
+	
 	float OldHealth = Health;
-	Health = FMath::Clamp(Health + Delta,0.0f,HealthMax);
-	float ActualDelta = Health - OldHealth;
-	OnHealthChanged.Broadcast(InstigatorActor,this,Health,ActualDelta);
+	float NewHealth = FMath::Clamp(Health + Delta,0.0f,HealthMax);
+	float ActualDelta = NewHealth - OldHealth;
 
-	if (ActualDelta < 0.0f && Health <= 0.0f)
+	//Is Server?
+	if (GetOwner()->HasAuthority())
 	{
-		APGameModeBase* GM = GetWorld()->GetAuthGameMode<APGameModeBase>();
-		if (GM)
+		Health = NewHealth;
+
+		if (ActualDelta != 0.0f)
 		{
-			GM->OnActorKilled(GetOwner(), InstigatorActor);
+			MultiCastHealthChanged(InstigatorActor, Health,ActualDelta);
+		}
+
+		//Died
+		if (ActualDelta < 0.0f && Health == 0.0f)
+		{
+			APGameModeBase* GM = GetWorld()->GetAuthGameMode<APGameModeBase>();
+			if (GM)
+			{
+				GM->OnActorKilled(GetOwner(), InstigatorActor);
+			}
 		}
 	}
+	//OnHealthChanged.Broadcast(InstigatorActor,this,Health,ActualDelta);
 	
 	return ActualDelta != 0.0f;
+}
+
+float UPAttributeComponent::GetRage() const
+{
+	return Rage;
+}
+
+bool UPAttributeComponent::ApplyRage(AActor* InstigatorActor, float Delta)
+{
+	float OldRage = Rage;
+	Rage = FMath::Clamp(Rage + Delta,0.0f, RageMax);
+
+	float ActualDelta = Rage - OldRage;
+
+	if (ActualDelta != 0.0f)
+	{
+		OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
+	}
+	return ActualDelta != 0.0f;
+	
 }
 
 UPAttributeComponent* UPAttributeComponent::GetAttributes(AActor* FromActor)
@@ -85,4 +126,24 @@ bool UPAttributeComponent::IsActorAlive(AActor* Actor)
 		return AttributeComp->IsAlive();
 	}
 	return false;
+}
+
+void UPAttributeComponent::MultiCastHealthChanged_Implementation(AActor* InstigatorActor, float NewHealth, float Delta)
+{
+	OnHealthChanged.Broadcast(InstigatorActor,this,NewHealth,Delta);
+}
+
+void UPAttributeComponent::MulticastRageChanged_Implementation(AActor* InstigatorActor, float NewRage, float Delta)
+{
+	OnRageChanged.Broadcast(InstigatorActor,this,NewRage,Delta);
+}
+
+void UPAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UPAttributeComponent, Health);
+	DOREPLIFETIME(UPAttributeComponent, HealthMax);
+	DOREPLIFETIME(UPAttributeComponent, Rage);
+	DOREPLIFETIME(UPAttributeComponent, RageMax);
 }

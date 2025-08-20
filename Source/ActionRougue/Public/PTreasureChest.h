@@ -24,9 +24,16 @@ public:
 
 	void Interact_Implementation(APawn* InstigatorPawn) ;
 
+	void OnActorLoaded_Implementation();
+
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+
+	UPROPERTY(ReplicatedUsing="OnRep_LidOpened", BlueprintReadOnly, SaveGame)  //RepNotify
+	bool bLidOpened;
+	
+	UFUNCTION()
+	void OnRep_LidOpened();
+	
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* BaseMesh;
 
@@ -35,9 +42,6 @@ protected:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="KeyCard")
 	FGameplayTag RequiredKeyCard;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	
 
 };

@@ -18,6 +18,11 @@ public:
 	APPowerUpActor();
 
 protected:
+	UPROPERTY(ReplicatedUsing="OnRep_IsActive")
+	bool bIsActive;
+
+	UFUNCTION()
+	void OnRep_IsActive();
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -43,5 +48,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	FText GetInteractText_Implementation(APawn* InstigatorPawn);
 
 };

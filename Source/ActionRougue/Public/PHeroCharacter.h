@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "PInteractionComponent.h"
 #include "GameFramework/Character.h"
+#include "InputAction.h"
 #include "PHeroCharacter.generated.h"
 
+class UInputMappingContext;
 class UCameraComponent;
 class USpringArmComponent;
 class UPInteractionComponent;
@@ -25,6 +27,36 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputMappingContext* DefaultInputMapping;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_Move;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_LookMouse;
+
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_LookStick;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_Jump;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_Interact;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_Sprint;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_Dash;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_PrimaryAttack;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UInputAction* Input_SecondaryAttack;
 	
 	UPROPERTY(VisibleAnywhere , Category="Effects")
 	FName TimeToHitParamName;
@@ -46,9 +78,15 @@ protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category="Components")
 	UPActionComponent* ActionComp;
 
-	void MoveForward(float Value);
+	/*void MoveForward(float Value);
 	
-	void MoveRight(float Value);
+	void MoveRight(float Value);*/
+
+	void Move(const FInputActionInstance& Instance);
+
+	void LookMouse(const FInputActionInstance& InputValue);
+
+	void LookStick(const FInputActionInstance& InputValue);
 
 	void StartSprint();
 
@@ -68,6 +106,16 @@ protected:
 	void PostInitializeComponents() override;
 
 	virtual FVector GetPawnViewLocation() const override;
+
+	void FindCrosshairTarget();
+
+	void CrosshairTraceComplete(const FTraceHandle& InTraceHandle, FTraceDatum& InTraceDatum);
+
+	FTraceHandle TraceHandle;
+
+private:
+
+	bool bHasPawnTarget;
 
 public:	
 	// Called every frame

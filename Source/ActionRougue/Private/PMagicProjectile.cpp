@@ -4,7 +4,6 @@
 #include "PMagicProjectile.h"
 
 #include "PActionComponent.h"
-#include "PAttributeComponent.h"
 #include "PGameplayFunctionLibrary.h"
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
@@ -23,7 +22,7 @@ APMagicProjectile::APMagicProjectile()
 	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	SetRootComponent(SphereComp);
 	SphereComp->SetCollisionProfileName(TEXT("Projectile"));
-	SphereComp->OnComponentBeginOverlap.AddDynamic(this,&APMagicProjectile::OnActorOverlap);
+	SphereComp->OnComponentBeginOverlap.AddDynamic(this,&APMagicProjectile::OnActorOverlap); 
 	SphereComp->OnComponentHit.AddDynamic(this,&APMagicProjectile::OnActorHit);
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("EffectComp"));
@@ -45,6 +44,8 @@ APMagicProjectile::APMagicProjectile()
 	ImpactShakeOuterRadius = 2500.0f;
 
 	InitialLifeSpan = 10.0f;
+
+	bReplicates = true;
 
 }
 
@@ -73,7 +74,7 @@ void APMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent,
 		if (UPGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(),OtherActor,DamageAmount,SweepResult))
 		{
 			Destroy();
-			if (ActionComp)
+			if (ActionComp && HasAuthority())
 			{
 				ActionComp->AddAction(GetInstigator(), BurningActionClass);
 			}

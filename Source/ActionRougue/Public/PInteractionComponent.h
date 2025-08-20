@@ -21,11 +21,17 @@ public:
 	void PrimaryInteract();
 
 protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
+	//Reliable - the function will always be called on the server (or) will always arrive, eventually . Request will be resent unless an acknowledgement was recieved.
+	//UnReliable - the function may not be called on the server (or) Not guaranteed, packet can get lost and won't worry.
+	UFUNCTION(Server, Reliable)
+	void ServerInteract(AActor* InFocus);
+	
 
 	void FindBestInteractable();
 
+	// Called when the game starts
+	virtual void BeginPlay() override;
+	
 	UPROPERTY()
 	AActor* FocusedActor;
 

@@ -25,5 +25,7 @@ public:
 	APPowerUp_HealthPotion();
 	
 	void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	FText GetInteractText_Implementation(APawn* InstigatorPawn) override;
 	
 };

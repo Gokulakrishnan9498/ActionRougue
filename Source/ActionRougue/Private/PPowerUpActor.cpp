@@ -4,6 +4,7 @@
 #include "PPowerUpActor.h"
 
 #include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 APPowerUpActor::APPowerUpActor()
@@ -20,8 +21,12 @@ APPowerUpActor::APPowerUpActor()
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	ReSpawnTime = 10.0f;
+	bIsActive = true; //Start as active
+
+	bReplicates = true;
 
 }
+
 
 // Called when the game starts or when spawned
 void APPowerUpActor::BeginPlay()
@@ -43,9 +48,15 @@ void APPowerUpActor::HideAndFreezePowerUp()
 
 void APPowerUpActor::SetPowerUpState(bool bNewIsActive)
 {
-	SetActorEnableCollision(bNewIsActive);
+	bIsActive = bNewIsActive;
+	OnRep_IsActive();
+}
+
+void APPowerUpActor::OnRep_IsActive()
+{
+	SetActorEnableCollision(bIsActive);
 	//Set visibility on root and all children
-	RootComponent->SetVisibility(bNewIsActive,true);
+	RootComponent->SetVisibility(bIsActive,true);
 }
 
 // Called every frame
@@ -59,3 +70,13 @@ void APPowerUpActor::Interact_Implementation(APawn* InstigatorPawn)
 	//Logic in derived classes
 }
 
+FText APPowerUpActor::GetInteractText_Implementation(APawn* InstigatorPawn)
+{
+	return FText::GetEmpty()	;
+}
+
+void APPowerUpActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APPowerUpActor, bIsActive);
+}

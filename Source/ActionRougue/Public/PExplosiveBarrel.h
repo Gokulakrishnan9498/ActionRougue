@@ -17,6 +17,9 @@ public:
 	APExplosiveBarrel();
 	
 protected:
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MultiCastExplode();
 	
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* BarrelMesh;

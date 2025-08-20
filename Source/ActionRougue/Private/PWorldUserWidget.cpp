@@ -18,7 +18,9 @@ void UPWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 		return;
 	}
 	FVector2D ScreenPosition;
-	if(UGameplayStatics::ProjectWorldToScreen(GetOwningPlayer(),AttachedActor->GetActorLocation() + WorldOffset,ScreenPosition))
+
+	bool bIsOnScreen = UGameplayStatics::ProjectWorldToScreen(GetOwningPlayer(),AttachedActor->GetActorLocation() + WorldOffset,ScreenPosition);
+	if(bIsOnScreen)
 	{
 		float Scale = UWidgetLayoutLibrary::GetViewportScale(this);
 
@@ -27,5 +29,9 @@ void UPWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 	if (ParentSizeBox)
 	{
 		ParentSizeBox->SetRenderTranslation(ScreenPosition);
+	}
+	if (ParentSizeBox)
+	{
+		ParentSizeBox->SetVisibility(bIsOnScreen? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 }

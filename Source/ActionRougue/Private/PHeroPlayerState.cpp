@@ -3,6 +3,7 @@
 
 #include "PHeroPlayerState.h"
 
+#include "Net/UnrealNetwork.h"
 
 
 void APHeroPlayerState::AddCredits(int32 Delta)
@@ -38,7 +39,42 @@ bool APHeroPlayerState::RemoveCredits(int32 Delta)
 	return true;
 }
 
+void APHeroPlayerState::SavePlayerState_Implementation(UPSaveGame* SaveObject)
+{
+	if (SaveObject)
+	{
+		SaveObject->Credits = Credits;
+	}
+}
+
+
+void APHeroPlayerState::LoadPlayerState_Implementation(UPSaveGame* SaveObject)
+{
+	if (SaveObject)
+	{
+		//Credits = SaveObject->Credits;
+		// Makes sure we trigger credits changed event
+		AddCredits(SaveObject->Credits);
+	}
+}
+
+void APHeroPlayerState::OnRep_Credits(int32 OldCredits)
+{
+	OnCreditsChanged.Broadcast(this, Credits, Credits - OldCredits);
+}
+
+// void APHeroPlayerState::MulticastCredits_Implementation(float NewCredits, float Delta)
+// {
+// 	OnCreditsChanged.Broadcast(this, NewCredits, Delta);
+// }
+
 int32 APHeroPlayerState::GetCredits() const
 {
 	return Credits;
+}
+
+void APHeroPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APHeroPlayerState, Credits);
 }

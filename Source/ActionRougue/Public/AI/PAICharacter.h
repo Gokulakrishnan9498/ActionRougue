@@ -23,11 +23,15 @@ public:
 	APAICharacter();
 
 protected:
+	
 
 	UPWorldUserWidget* ActiveHealthBar;
 
 	UPROPERTY(EditDefaultsOnly,Category="UI")
 	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly,Category="UI")
+	TSubclassOf<UPWorldUserWidget> SpottedWidgetClass;
 	
 	UPROPERTY(VisibleAnywhere,Category="Components")
 	UPawnSensingComponent* PawnSensingComp;
@@ -41,16 +45,25 @@ protected:
 	UPROPERTY(VisibleAnywhere,Category="Effects")
 	FName TimeToHitParamName;
 
+	UPROPERTY(VisibleAnywhere, Category="Effects")
+	FName TargetActorKey;
+
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, UPAttributeComponent* OwningComp, float NewHealth, float Delta);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable, Category="AI")
 	void SetTargetActor(AActor* NewTarget);
+
+	UFUNCTION(BlueprintCallable, Category="AI")
+	AActor* GetTargetActor() const;
 	
 	void PostInitializeComponents() override;
 
 	UFUNCTION()
 	void OnPawnSeen (APawn* Pawn);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastPawnSeen();
 
 
 
